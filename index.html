@@ -116,6 +116,8 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .filt .or{font-size:12.5px;color:var(--muted);align-self:center}
 .filt select,.filt input[type=date]{font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}
 .filt .btn{padding:8px 14px;font-size:13.5px}
+.filt .btn.pend{box-shadow:0 0 0 3px var(--grain);}
+.filt .f select#ft,.filt .f select#rt{max-width:300px}
 .fres{margin-left:auto;font-size:13.5px;color:var(--ink);align-self:center;font-variant-numeric:tabular-nums}
 .fres b{font-family:var(--f-disp)}
 .months{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
@@ -307,15 +309,15 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   <section id="review" hidden=""></section>
   <section class="ag" id="tab-ag" style="display:grid;gap:16px">
    <div class="ag-h"><div><h2>Programação das entregas</h2><p id="agsub">Ordenado pelo prazo da nota de entrega.</p></div>
-    <div class="ctrl"><div class="seg" role="group" aria-label="Filtro"><button data-f="ab" aria-pressed="true">Pendentes</button><button data-f="fi" aria-pressed="false">Finalizadas</button><button data-f="all" aria-pressed="false">Todas</button></div><input type="search" id="q" placeholder="Cliente, CPF/CNPJ, nº ou loja" aria-label="Buscar"></div></div>
-   <div class="filt" role="group" aria-label="Filtrar por emissão">
-    <span class="fl-t">Emissão da venda</span>
+    <div class="ctrl"><div class="seg" role="group" aria-label="Filtro"><button data-f="ab" aria-pressed="true">Pendentes</button><button data-f="fi" aria-pressed="false">Finalizadas</button><button data-f="all" aria-pressed="false">Todas</button></div><input type="search" id="q" placeholder="Cliente, CPF/CNPJ, nº ou loja + Enter" aria-label="Buscar (Enter para aplicar)"></div></div>
+   <div class="filt" role="group" aria-label="Filtros da agenda">
+    <div class="f"><label for="ft">Filtrar pela data de</label><select id="ft"><option value="emi">Emissão da venda (faturamento antecipado 5922)</option><option value="pra">Prazo da entrega (programado)</option><option value="ent">Emissão da nota de entrega (5117)</option></select></div>
     <div class="f"><label for="fm">Mês</label><select id="fm"><option value="">Todos os meses</option></select></div>
     <span class="or">ou período</span>
     <div class="f"><label for="fd1">De</label><input type="date" id="fd1"></div>
     <div class="f"><label for="fd2">Até</label><input type="date" id="fd2"></div>
     <div class="f"><label for="fl">Loja</label><select id="fl"><option value="">Matriz e Filial</option><option>Matriz</option><option>Filial</option></select></div>
-    <button class="btn" id="fclr" type="button">Limpar filtros</button>
+    <button class="btn pri" id="fapl" type="button">Aplicar filtros</button><button class="btn" id="fclr" type="button">Limpar</button>
     <span class="fres" id="fres"></span>
    </div>
    <div class="months" id="months"></div>
@@ -323,9 +325,9 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   </section>
   <section id="tab-rel" hidden style="display:grid;gap:16px">
    <div class="ag-h"><div><h2>Venda × entrega</h2><p>Cada nota de faturamento antecipado (5922) ao lado das notas de entrega (5117) emitidas para ela.</p></div>
-    <div class="ctrl noprint"><input type="search" id="rq" placeholder="Cliente, CPF/CNPJ ou nº da nota" aria-label="Buscar no relatório"><button class="btn" id="rcsv" type="button">Exportar para Excel</button><button class="btn" id="rprint" type="button">Imprimir / PDF</button></div></div>
+    <div class="ctrl noprint"><input type="search" id="rq" placeholder="Cliente, CPF/CNPJ ou nº + Enter" aria-label="Buscar no relatório (Enter para aplicar)"><button class="btn" id="rcsv" type="button">Exportar para Excel</button><button class="btn" id="rprint" type="button">Imprimir / PDF</button></div></div>
    <div class="filt noprint" role="group" aria-label="Filtros do relatório">
-    <span class="fl-t">Emissão da venda</span>
+    <div class="f"><label for="rt">Filtrar pela data de</label><select id="rt"><option value="emi">Emissão da venda (faturamento antecipado 5922)</option><option value="pra">Prazo da entrega (programado)</option><option value="ent">Emissão da nota de entrega (5117)</option></select></div>
     <div class="f"><label for="rm">Mês</label><select id="rm"><option value="">Todos os meses</option></select></div>
     <span class="or">ou período</span>
     <div class="f"><label for="rd1">De</label><input type="date" id="rd1"></div>
@@ -333,7 +335,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
     <div class="f"><label for="rl">Loja</label><select id="rl"><option value="">Matriz e Filial</option><option>Matriz</option><option>Filial</option></select></div>
     <div class="f"><label for="rs">Situação</label><select id="rs"><option value="">Todas as vendas</option><option value="com">Com nota de entrega</option><option value="sem">Sem nota de entrega</option><option value="venc">Prazo vencido sem entrega completa</option><option value="atr">Entregues com atraso</option><option value="div">Entrega com divergência ou sem chave referenciada</option></select></div>
     <div class="f"><label for="ro">Ordenar por</label><select id="ro"><option value="emi">Emissão da venda</option><option value="ent">Emissão da entrega</option><option value="pra">Prazo da entrega</option><option value="cli">Cliente</option></select></div>
-    <button class="btn" id="rclr" type="button">Limpar filtros</button>
+    <button class="btn pri" id="rapl" type="button">Aplicar filtros</button><button class="btn" id="rclr" type="button">Limpar</button>
    </div>
    <p class="onlyprint" id="rpt"></p>
    <div class="sumr" id="rsum"></div>
@@ -613,8 +615,15 @@ function saldoTable(v){const S=[...saldoProd(v).values()];if(!S.length)return ''
 function okShow(t,html,done=true){const o=$('#okov');o.innerHTML=`<div class="ok-card" role="dialog" aria-modal="true" aria-labelledby="okt"><div class="ok-ic"><svg viewBox="0 0 40 40"><path d="M9 21 l7 7 l15 -16"/></svg></div><h3 id="okt">${t}</h3>${html}<div class="acts" style="justify-content:center;margin-top:8px"><button class="btn pri" id="okb">Ok</button></div></div>`;o.hidden=false;$('#okb').focus();$('#okb').onclick=()=>{o.hidden=true;o.innerHTML='';};}
 
 /* ---------------- agenda ---------------- */
-let F='ab',Q='',open=null,edit=null,delAsk=false,FM='',FD1='',FD2='',FL='';
+let F='ab',Q='',open=null,edit=null,delAsk=false,FM='',FD1='',FD2='',FL='',FT='emi';
 function st(v){if(v.status==='finalizada')return ['done','Finalizada'];const d=daysTo(v.prazo);if(d<0)return ['bad',`Vencida há ${-d} dia${-d>1?'s':''}`];if(d===0)return ['bad','Vence hoje'];if(d<=7)return ['hot',`Vence em ${d} dia${d>1?'s':''}`];if(d<=30)return ['hot',`Vence em ${d} dias`];return ['ok',`Faltam ${d} dias`];}
+const TIPO_D=t=>TIPOD[t]||'';
+const TIPOD={emi:'emissão da venda',pra:'prazo da entrega',ent:'emissão da nota de entrega'};
+const datasDe=(v,t)=>t==='pra'?[v.prazo||'']:t==='ent'?(v.entregas||[]).map(e=>e.emissao||'').filter(Boolean):[v.emissao||''];
+const casaData=(v,t,m,d1,d2)=>(!m&&!d1&&!d2)||datasDe(v,t).some(d=>d&&(!m||d.slice(0,7)===m)&&(!d1||d>=d1)&&(!d2||d<=d2));
+function opcoesMes(sel,t,V,cont){const ms=[...new Set(V.flatMap(v=>datasDe(v,t).map(d=>d.slice(0,7))).filter(Boolean))].sort().reverse();
+  const h='<option value="">Todos os meses</option>'+ms.map(m=>{const n=cont?cont(m):null;return `<option value="${m}">${MES[+m.slice(5)-1]}/${m.slice(0,4)}${n!=null?` · ${n} pendente${n===1?'':'s'}`:''}</option>`;}).join('');
+  if(sel.dataset.h!==h){const atual=sel.value;sel.innerHTML=h;sel.dataset.h=h;sel.value=ms.includes(atual)?atual:'';}}
 function renderAg(){
   const V=all(),A=V.filter(v=>v.status!=='finalizada'),D=V.filter(v=>v.status==='finalizada');
   const v30=A.filter(v=>{const d=daysTo(v.prazo);return d>=0&&d<=30;}),ven=A.filter(v=>daysTo(v.prazo)<0);const sumF=L=>L.reduce((a,v)=>a+(v.valor||0)-(v.entregue||0),0);
@@ -625,12 +634,11 @@ function renderAg(){
   const t=today(),ms=[];for(let i=0;i<6;i++){const d=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth()+i,1));ms.push(iso(d).slice(0,7));}
   $('#months').innerHTML=ms.map((m,i)=>{const L=A.filter(v=>v.prazo.slice(0,7)===m);return `<div class="mo ${i===0?'now':''}"><small>${MES[+m.slice(5)-1]}/${m.slice(2,4)}</small><b>${L.length}</b><span>${L.length?brl(sumF(L)):'sem entregas'}</span></div>`;}).join('');
   // lista
-  const q=norm(Q).trim();const okE=v=>(!FM||(v.emissao||'').slice(0,7)===FM)&&(!FD1||(v.emissao||'')>=FD1)&&(!FD2||(v.emissao||'')<=FD2)&&(!FL||v.loja===FL);
-  const msel=$('#fm'),ms_=[...new Set(V.map(v=>(v.emissao||'').slice(0,7)).filter(Boolean))].sort().reverse(),cnt=m=>V.filter(v=>(v.emissao||'').startsWith(m)&&v.status!=='finalizada').length;
-  const optH='<option value="">Todos os meses</option>'+ms_.map(m=>`<option value="${m}">${MES[+m.slice(5)-1]}/${m.slice(0,4)} · ${cnt(m)} pendente${cnt(m)===1?'':'s'}</option>`).join('');if(msel.dataset.h!==optH){msel.innerHTML=optH;msel.dataset.h=optH;}msel.value=FM;
+  const q=norm(Q).trim();const okE=v=>casaData(v,FT,FM,FD1,FD2)&&(!FL||v.loja===FL);
+  {const tt=$('#ft').value;opcoesMes($('#fm'),tt,V,m=>V.filter(v=>v.status!=='finalizada'&&datasDe(v,tt).some(d=>d.startsWith(m))).length);}
   let L=(F==='ab'?A:F==='fi'?D:V).filter(okE).filter(v=>!q||norm(v.cliente+' '+v.doc+' '+v.numero+' '+(v.loja||'')+' '+(v.entregas||[]).map(e=>e.numero).join(' ')).includes(q));
   L.sort((a,b)=>F==='fi'?(b.finalizadaEm||'').localeCompare(a.finalizadaEm||''):a.prazo.localeCompare(b.prazo));
-  const fon=FM||FD1||FD2||FL||q;$('#fres').innerHTML=fon?`<b>${L.length}</b> venda${L.length===1?'':'s'} no filtro · <b>${brl(L.reduce((a,v)=>a+(v.valor||0)-(v.entregue||0),0))}</b> a entregar`:`${L.length} venda${L.length===1?'':'s'} nesta lista`;
+  const fon=FM||FD1||FD2||FL||q;$('#fres').innerHTML=fon?`${FM||FD1||FD2?'Pela data de '+TIPO_D(FT)+': ':''}<b>${L.length}</b> venda${L.length===1?'':'s'} no filtro · <b>${brl(L.reduce((a,v)=>a+saldoV(v),0))}</b> a entregar`:`${L.length} venda${L.length===1?'':'s'} nesta lista`;
   const list=$('#list');
   if(!V.length){list.innerHTML=`<div class="empty"><b>Nenhuma venda na agenda ainda</b><p>Assim que a primeira nota de faturamento antecipado for registrada, ela aparece aqui com a data em que a nota de entrega precisa sair.</p><div class="steps"><div><b>1 · venda</b>Emitiu uma 5922? Solte o XML no quadro amarelo e confira os dados.</div><div><b>2 · agenda</b>A entrega fica programada para 120 dias depois da emissão, com alerta quando o prazo se aproxima.</div><div><b>3 · entrega</b>Emitiu a 5117? Solte o XML no quadro verde. A agenda confere a chave referenciada e finaliza o processo.</div></div></div>`;return;}
   if(!L.length){list.innerHTML=`<div class="empty"><b>${q?'Nada encontrado':'Nenhuma venda nesta lista'}</b><p>${q?'Confira o nome, o CPF/CNPJ ou o número da nota.':F==='ab'?'Todas as vendas registradas já foram entregues.':'Nenhum processo finalizado ainda.'}</p></div>`;return;}
@@ -732,7 +740,7 @@ function setTab(t){TAB=t;document.querySelectorAll('[data-tab]').forEach(b=>b.se
   $('#tab-ag').hidden=t!=='ag';$('#tab-rel').hidden=t!=='rel';$('#tab-conf').hidden=t!=='conf';$('#tab-adm').hidden=t!=='adm';$('#doors').hidden=t!=='ag';
   const rv=$('#review');rv.hidden=t!=='ag'||!rv.innerHTML;render();}
 function render(){renderAg();$('#tc-rel').textContent=all().length;if(TAB==='rel')renderRel();else if(TAB==='conf')renderConf();else if(TAB==='adm')renderAdm();}
-function irAgenda(txt,id){FM=FD1=FD2=FL='';['#fd1','#fd2'].forEach(x=>$(x).value='');$('#fl').value='';Q=txt;$('#q').value=txt;F='all';
+function irAgenda(txt,id){FM=FD1=FD2=FL='';['#fd1','#fd2','#fm'].forEach(x=>$(x).value='');$('#fl').value='';Q=txt;$('#q').value=txt;F='all';setTimeout(()=>{try{marcaAg();}catch(_){}},0);
   document.querySelectorAll('[data-f]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.f==='all')));open=id||null;edit=null;setTab('ag');
   setTimeout(()=>{const el=document.querySelector('#list .row');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},50);}
 
@@ -745,7 +753,7 @@ function baixarCsv(nome,linhas){const txt='﻿'+linhas.map(l=>l.map(csvCell).joi
 const hojeNome=()=>{const d=new Date();return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;};
 
 /* ---------------- relatório 5922 × 5117 ---------------- */
-let RM='',RD1='',RD2='',RL='',RS='',RQ='',RO='emi';
+let RM='',RD1='',RD2='',RL='',RS='',RQ='',RO='emi',RT='emi';
 function fimEm(v){const E=v.entregas||[];return v.finalizadaEm||(E.length?E.map(e=>e.emissao||'').sort().pop():'');}
 function sitV(v){const E=v.entregas||[];
   if(v.status==='finalizada'){const f=fimEm(v);if(!E.length)return ['done','Finalizada sem nota de entrega'];return f&&f>v.prazo?['hot','Entregue com atraso']:['ok','Entregue no prazo'];}
@@ -756,7 +764,7 @@ const confSt=e=>!e.conferencia||!Object.keys(e.conferencia).length?['done','Sem 
 const saldoV=v=>v.status==='finalizada'?0:Math.max(0,r2((v.valor||0)-(v.entregue||0)));
 const qtdTxt=P=>(P||[]).map(p=>`${fq(p.qtd)} ${p.un||''} ${p.desc||''}`.replace(/\s+/g,' ').trim()).join(' | ');
 function relFiltro(){const q=norm(RQ).trim();
-  return all().filter(v=>(!RM||(v.emissao||'').slice(0,7)===RM)&&(!RD1||(v.emissao||'')>=RD1)&&(!RD2||(v.emissao||'')<=RD2)&&(!RL||v.loja===RL)).filter(v=>{const E=v.entregas||[];
+  return all().filter(v=>casaData(v,RT,RM,RD1,RD2)&&(!RL||v.loja===RL)).filter(v=>{const E=v.entregas||[];
     switch(RS){case 'com':return E.length>0;case 'sem':return !E.length;case 'venc':return v.status!=='finalizada'&&daysTo(v.prazo)<0;case 'atr':return v.status==='finalizada'&&E.length&&fimEm(v)>v.prazo;
       case 'div':return E.some(e=>!refOk(v,e)||confSt(e)[0]==='bad');default:return true;}})
    .filter(v=>!q||norm([v.cliente,v.doc,fmtDoc(v.doc),v.numero,v.loja,...(v.entregas||[]).map(e=>e.numero)].join(' ')).includes(q))
@@ -765,8 +773,7 @@ function relFiltro(){const q=norm(RQ).trim();
       default:return a.emissao.localeCompare(b.emissao)||(+a.numero)-(+b.numero);}});}
 function prodCell(P){return (P||[]).length?P.map(p=>`<span class="pl"><b>${fq(p.qtd)} ${esc(p.un||'')}</b> ${esc(p.desc||'')}</span>`).join(''):'<span class="pl">—</span>';}
 function renderRel(){const V=all();
-  const ms=[...new Set(V.map(v=>(v.emissao||'').slice(0,7)).filter(Boolean))].sort().reverse();const sel=$('#rm');
-  const oh='<option value="">Todos os meses</option>'+ms.map(m=>`<option value="${m}">${MES[+m.slice(5)-1]}/${m.slice(0,4)}</option>`).join('');if(sel.dataset.h!==oh){sel.innerHTML=oh;sel.dataset.h=oh;}sel.value=RM;
+  opcoesMes($('#rm'),$('#rt').value,V);
   const L=relFiltro();const E=L.flatMap(v=>(v.entregas||[]).map(e=>({v,e})));
   const tv=L.reduce((a,v)=>a+(+v.valor||0),0),te=E.reduce((a,x)=>a+(+x.e.valor||0),0),sl=L.filter(v=>saldoV(v)>0),ts=sl.reduce((a,v)=>a+saldoV(v),0);
   const sem=L.filter(v=>!(v.entregas||[]).length&&v.status!=='finalizada'),semR=E.filter(x=>!refOk(x.v,x.e)),dv=E.filter(x=>confSt(x.e)[0]==='bad');
@@ -774,7 +781,7 @@ function renderRel(){const V=all();
     ['Falta entregar',brl(ts),sl.length+' venda'+(sl.length===1?'':'s')+' com saldo'],['Sem nenhuma nota de entrega',String(sem.length),brl(sem.reduce((a,v)=>a+(+v.valor||0),0))],
     ['Entregas sem chave no refNFe',String(semR.length),dv.length?dv.length+' com divergência na conferência':'nenhuma com divergência']]
     .map(([t,b,s])=>`<div class="mo"><small>${t}</small><b>${b}</b><span>${s}</span></div>`).join('');
-  const fl=[RM?`mês ${MES[+RM.slice(5)-1]}/${RM.slice(0,4)}`:'',RD1?'de '+br(RD1):'',RD2?'até '+br(RD2):'',RL||'',RS?$('#rs').selectedOptions[0].textContent.toLowerCase():'',RQ?`busca "${RQ}"`:''].filter(Boolean);
+  const fl=[RM||RD1||RD2?'pela data de '+TIPO_D(RT):'',RM?`mês ${MES[+RM.slice(5)-1]}/${RM.slice(0,4)}`:'',RD1?'de '+br(RD1):'',RD2?'até '+br(RD2):'',RL||'',RS?$('#rs').selectedOptions[0].textContent.toLowerCase():'',RQ?`busca "${RQ}"`:''].filter(Boolean);
   $('#rpt').textContent=`Relatório venda × entrega · ${fl.length?fl.join(' · '):'todas as vendas'} · gerado em ${hora(new Date())}`;
   if(!L.length){$('#rtab').innerHTML=`<div class="empty"><b>${V.length?'Nenhuma venda neste filtro':'Nenhuma venda na agenda ainda'}</b><p>${V.length?'Mude o mês, o período, a loja ou a situação para ver outras vendas.':'Registre as notas de faturamento antecipado na aba Agenda.'}</p></div>`;return;}
   const body=L.map(v=>{const E=v.entregas||[],n=Math.max(1,E.length),[sc,sl]=sitV(v),sv=saldoV(v),rest=[...saldoProd(v).values()].filter(o=>o.rest>0&&v.status!=='finalizada');
@@ -1083,11 +1090,15 @@ async function importarAntiga(file){const m=$('#impmsg');if(!file)return;m.inner
 
 /* ---------------- eventos ---------------- */
 document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{F=b.dataset.f;document.querySelectorAll('[data-f]').forEach(x=>x.setAttribute('aria-pressed',x===b));render();});
-$('#q').oninput=e=>{Q=e.target.value;render();};
-$('#fm').onchange=e=>{FM=e.target.value;if(FM){FD1='';FD2='';$('#fd1').value='';$('#fd2').value='';}render();};
-$('#fd1').onchange=e=>{FD1=e.target.value;if(FD1){FM='';}render();};$('#fd2').onchange=e=>{FD2=e.target.value;if(FD2){FM='';}render();};
-$('#fl').onchange=e=>{FL=e.target.value;render();};
-$('#fclr').onclick=()=>{FM=FD1=FD2=FL=Q='';['#fd1','#fd2','#q'].forEach(x=>$(x).value='');$('#fl').value='';render();};
+/* filtros: só valem ao clicar em Aplicar (ou Enter na busca) */
+function marcaAg(){const d=$('#ft').value!==FT||$('#fm').value!==FM||$('#fd1').value!==FD1||$('#fd2').value!==FD2||$('#fl').value!==FL||$('#q').value!==Q;const b=$('#fapl');b.classList.toggle('pend',d);b.textContent=d?'Aplicar filtros ●':'Aplicar filtros';}
+function aplicaAg(){FT=$('#ft').value;FM=$('#fm').value;FD1=$('#fd1').value;FD2=$('#fd2').value;FL=$('#fl').value;Q=$('#q').value;render();marcaAg();}
+$('#q').oninput=marcaAg;$('#q').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();aplicaAg();}};
+$('#ft').onchange=()=>{$('#fm').value='';opcoesMes($('#fm'),$('#ft').value,all(),m=>all().filter(v=>v.status!=='finalizada'&&datasDe(v,$('#ft').value).some(d=>d.startsWith(m))).length);marcaAg();};
+$('#fm').onchange=()=>{if($('#fm').value){$('#fd1').value='';$('#fd2').value='';}marcaAg();};
+$('#fd1').onchange=$('#fd2').onchange=()=>{if($('#fd1').value||$('#fd2').value)$('#fm').value='';marcaAg();};
+$('#fl').onchange=marcaAg;$('#fapl').onclick=aplicaAg;
+$('#fclr').onclick=()=>{['#fd1','#fd2','#q','#fm','#fl'].forEach(x=>$(x).value='');$('#ft').value='emi';aplicaAg();};
 $('#fv').onchange=e=>handle(e.target.files[0],'venda');$('#fe').onchange=e=>handle(e.target.files[0],'entrega');
 [['#door1','venda'],['#door2','entrega']].forEach(([s,k])=>{const d=$(s);['dragenter','dragover'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.add('drag');}));['dragleave','drop'].forEach(ev=>d.addEventListener(ev,e=>{e.preventDefault();d.classList.remove('drag');}));d.addEventListener('drop',e=>{const f=e.dataTransfer&&e.dataTransfer.files[0];if(f)handle(f,k);});});
 document.addEventListener('click',async e=>{const a=e.target.closest&&e.target.closest('[data-lpdf]');if(!a)return;e.preventDefault();try{let x=await idb.get('pdf:'+a.dataset.lpdf);if(typeof x==='string')x=await (await fetch(x)).blob();if(!x){okShow('Arquivo não encontrado','<p>Este arquivo não está salvo neste computador.</p>');return;}const u=URL.createObjectURL(a.dataset.x?new Blob([x],{type:'text/plain;charset=utf-8'}):(x.type?x:new Blob([x],{type:'application/pdf'})));window.open(u,'_blank');}catch(_){}});
@@ -1095,11 +1106,14 @@ $('#lbexp').onclick=exportar;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#okov').hidden){$('#okov').hidden=true;}});
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-goto]');if(!b)return;e.preventDefault();irAgenda(b.dataset.goto,b.dataset.gid);});
-$('#rq').oninput=e=>{RQ=e.target.value;renderRel();};
-$('#rm').onchange=e=>{RM=e.target.value;if(RM){RD1=RD2='';$('#rd1').value='';$('#rd2').value='';}renderRel();};
-$('#rd1').onchange=e=>{RD1=e.target.value;if(RD1)RM='';renderRel();};$('#rd2').onchange=e=>{RD2=e.target.value;if(RD2)RM='';renderRel();};
-$('#rl').onchange=e=>{RL=e.target.value;renderRel();};$('#rs').onchange=e=>{RS=e.target.value;renderRel();};$('#ro').onchange=e=>{RO=e.target.value;renderRel();};
-$('#rclr').onclick=()=>{RM=RD1=RD2=RL=RS=RQ='';RO='emi';['#rd1','#rd2','#rq'].forEach(x=>$(x).value='');['#rl','#rs'].forEach(x=>$(x).value='');$('#ro').value='emi';renderRel();};
+function marcaRel(){const d=$('#rt').value!==RT||$('#rm').value!==RM||$('#rd1').value!==RD1||$('#rd2').value!==RD2||$('#rl').value!==RL||$('#rs').value!==RS||$('#rq').value!==RQ||$('#ro').value!==RO;const b=$('#rapl');b.classList.toggle('pend',d);b.textContent=d?'Aplicar filtros ●':'Aplicar filtros';}
+function aplicaRel(){RT=$('#rt').value;RM=$('#rm').value;RD1=$('#rd1').value;RD2=$('#rd2').value;RL=$('#rl').value;RS=$('#rs').value;RQ=$('#rq').value;RO=$('#ro').value;renderRel();marcaRel();}
+$('#rq').oninput=marcaRel;$('#rq').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();aplicaRel();}};
+$('#rt').onchange=()=>{$('#rm').value='';opcoesMes($('#rm'),$('#rt').value,all());marcaRel();};
+$('#rm').onchange=()=>{if($('#rm').value){$('#rd1').value='';$('#rd2').value='';}marcaRel();};
+$('#rd1').onchange=$('#rd2').onchange=()=>{if($('#rd1').value||$('#rd2').value)$('#rm').value='';marcaRel();};
+$('#rl').onchange=$('#rs').onchange=$('#ro').onchange=marcaRel;$('#rapl').onclick=aplicaRel;
+$('#rclr').onclick=()=>{['#rd1','#rd2','#rq','#rm','#rl','#rs'].forEach(x=>$(x).value='');$('#rt').value='emi';$('#ro').value='emi';aplicaRel();};
 $('#rcsv').onclick=exportRel;$('#rprint').onclick=()=>window.print();
 $('#cfile').onchange=e=>importar(e.target.files[0]);
 $('#usair').onclick=sair;$('#utroca').onclick=()=>telaTrocaSenha(false);$('#uatu').onclick=()=>recarregar(true).catch(e=>notice(e.message));
