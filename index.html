@@ -118,7 +118,8 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .filt .btn{padding:8px 14px;font-size:13.5px}
 .filt .btn.pend{box-shadow:0 0 0 3px var(--grain);}
 .filt .f select#ft,.filt .f select#rt{max-width:300px}
-.fres{margin-left:auto;font-size:13.5px;color:var(--ink);align-self:center;font-variant-numeric:tabular-nums}
+.fres{flex:1 1 100%;margin-left:0;font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums;border-top:1px dashed var(--line);padding-top:10px;line-height:1.7}
+.sumr .mo span{white-space:normal}
 .fres b{font-family:var(--f-disp)}
 .months{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
 .mo{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:2px;min-width:0}
@@ -620,6 +621,8 @@ function st(v){if(v.status==='finalizada')return ['done','Finalizada'];const d=d
 const TIPO_D=t=>TIPOD[t]||'';
 const TIPOD={emi:'emissão da venda',pra:'prazo da entrega',ent:'emissão da nota de entrega'};
 const datasDe=(v,t)=>t==='pra'?[v.prazo||'']:t==='ent'?(v.entregas||[]).map(e=>e.emissao||'').filter(Boolean):[v.emissao||''];
+const dentroP=(d,m,d1,d2)=>!!d&&(!m||d.slice(0,7)===m)&&(!d1||d>=d1)&&(!d2||d<=d2);
+const qUn=P=>{const m={};(P||[]).forEach(p=>{const u=String(p.un||'UN').toUpperCase();m[u]=(m[u]||0)+(+p.qtd||0);});return Object.entries(m).filter(x=>x[1]).map(([u,q])=>fq(q)+' '+u).join(' · ');};
 const casaData=(v,t,m,d1,d2)=>(!m&&!d1&&!d2)||datasDe(v,t).some(d=>d&&(!m||d.slice(0,7)===m)&&(!d1||d>=d1)&&(!d2||d<=d2));
 function opcoesMes(sel,t,V,cont){const ms=[...new Set(V.flatMap(v=>datasDe(v,t).map(d=>d.slice(0,7))).filter(Boolean))].sort().reverse();
   const h='<option value="">Todos os meses</option>'+ms.map(m=>{const n=cont?cont(m):null;return `<option value="${m}">${MES[+m.slice(5)-1]}/${m.slice(0,4)}${n!=null?` · ${n} pendente${n===1?'':'s'}`:''}</option>`;}).join('');
@@ -638,7 +641,8 @@ function renderAg(){
   {const tt=$('#ft').value;opcoesMes($('#fm'),tt,V,m=>V.filter(v=>v.status!=='finalizada'&&datasDe(v,tt).some(d=>d.startsWith(m))).length);}
   let L=(F==='ab'?A:F==='fi'?D:V).filter(okE).filter(v=>!q||norm(v.cliente+' '+v.doc+' '+v.numero+' '+(v.loja||'')+' '+(v.entregas||[]).map(e=>e.numero).join(' ')).includes(q));
   L.sort((a,b)=>F==='fi'?(b.finalizadaEm||'').localeCompare(a.finalizadaEm||''):a.prazo.localeCompare(b.prazo));
-  const fon=FM||FD1||FD2||FL||q;$('#fres').innerHTML=fon?`${FM||FD1||FD2?'Pela data de '+TIPO_D(FT)+': ':''}<b>${L.length}</b> venda${L.length===1?'':'s'} no filtro · <b>${brl(L.reduce((a,v)=>a+saldoV(v),0))}</b> a entregar`:`${L.length} venda${L.length===1?'':'s'} nesta lista`;
+  const perA=FT==='ent'&&!!(FM||FD1||FD2),EA=L.flatMap(v=>(v.entregas||[]).filter(e=>!perA||dentroP(e.emissao,FM,FD1,FD2)));
+  $('#fres').innerHTML=`${FM||FD1||FD2?'Pela data de '+TIPO_D(FT)+' · ':''}<b>${L.length}</b> venda${L.length===1?'':'s'} nesta lista · faturado <b>${brl(L.reduce((a,v)=>a+(+v.valor||0),0))}</b> · ${perA?'notas de entrega no período':'entregue'} <b>${brl(EA.reduce((a,e)=>a+(+e.valor||0),0))}</b> em ${EA.length} nota${EA.length===1?'':'s'} · a entregar <b>${brl(L.reduce((a,v)=>a+saldoV(v),0))}</b>`;
   const list=$('#list');
   if(!V.length){list.innerHTML=`<div class="empty"><b>Nenhuma venda na agenda ainda</b><p>Assim que a primeira nota de faturamento antecipado for registrada, ela aparece aqui com a data em que a nota de entrega precisa sair.</p><div class="steps"><div><b>1 · venda</b>Emitiu uma 5922? Solte o XML no quadro amarelo e confira os dados.</div><div><b>2 · agenda</b>A entrega fica programada para 120 dias depois da emissão, com alerta quando o prazo se aproxima.</div><div><b>3 · entrega</b>Emitiu a 5117? Solte o XML no quadro verde. A agenda confere a chave referenciada e finaliza o processo.</div></div></div>`;return;}
   if(!L.length){list.innerHTML=`<div class="empty"><b>${q?'Nada encontrado':'Nenhuma venda nesta lista'}</b><p>${q?'Confira o nome, o CPF/CNPJ ou o número da nota.':F==='ab'?'Todas as vendas registradas já foram entregues.':'Nenhum processo finalizado ainda.'}</p></div>`;return;}
@@ -763,6 +767,8 @@ const refOk=(v,e)=>(e.refNFe||[]).includes(v.chave);
 const confSt=e=>!e.conferencia||!Object.keys(e.conferencia).length?['done','Sem conferência']:Object.values(e.conferencia).every(x=>x==='ok')?['ok','Conferida']:['bad','Com divergência'];
 const saldoV=v=>v.status==='finalizada'?0:Math.max(0,r2((v.valor||0)-(v.entregue||0)));
 const qtdTxt=P=>(P||[]).map(p=>`${fq(p.qtd)} ${p.un||''} ${p.desc||''}`.replace(/\s+/g,' ').trim()).join(' | ');
+const perRel=()=>RT==='ent'&&!!(RM||RD1||RD2);
+const entregasVis=v=>perRel()?(v.entregas||[]).filter(e=>dentroP(e.emissao,RM,RD1,RD2)):(v.entregas||[]);
 function relFiltro(){const q=norm(RQ).trim();
   return all().filter(v=>casaData(v,RT,RM,RD1,RD2)&&(!RL||v.loja===RL)).filter(v=>{const E=v.entregas||[];
     switch(RS){case 'com':return E.length>0;case 'sem':return !E.length;case 'venc':return v.status!=='finalizada'&&daysTo(v.prazo)<0;case 'atr':return v.status==='finalizada'&&E.length&&fimEm(v)>v.prazo;
@@ -774,17 +780,18 @@ function relFiltro(){const q=norm(RQ).trim();
 function prodCell(P){return (P||[]).length?P.map(p=>`<span class="pl"><b>${fq(p.qtd)} ${esc(p.un||'')}</b> ${esc(p.desc||'')}</span>`).join(''):'<span class="pl">—</span>';}
 function renderRel(){const V=all();
   opcoesMes($('#rm'),$('#rt').value,V);
-  const L=relFiltro();const E=L.flatMap(v=>(v.entregas||[]).map(e=>({v,e})));
+  const L=relFiltro();const E=L.flatMap(v=>entregasVis(v).map(e=>({v,e})));const perE=perRel();
   const tv=L.reduce((a,v)=>a+(+v.valor||0),0),te=E.reduce((a,x)=>a+(+x.e.valor||0),0),sl=L.filter(v=>saldoV(v)>0),ts=sl.reduce((a,v)=>a+saldoV(v),0);
   const sem=L.filter(v=>!(v.entregas||[]).length&&v.status!=='finalizada'),semR=E.filter(x=>!refOk(x.v,x.e)),dv=E.filter(x=>confSt(x.e)[0]==='bad');
-  $('#rsum').innerHTML=[['Faturamento antecipado · 5922',L.length+' nota'+(L.length===1?'':'s'),brl(tv)],['Notas de entrega · 5117',E.length+' nota'+(E.length===1?'':'s'),brl(te)],
+  const qv=qUn(L.flatMap(v=>v.produtos||[])),qe=qUn(E.flatMap(x=>x.e.produtos||[]));
+  $('#rsum').innerHTML=[['Faturamento antecipado · 5922',brl(tv),L.length+' nota'+(L.length===1?'':'s')+(qv?' · '+qv:'')],[perE?'Notas de entrega · 5117 no período':'Notas de entrega · 5117',brl(te),E.length+' nota'+(E.length===1?'':'s')+(qe?' · '+qe:'')],
     ['Falta entregar',brl(ts),sl.length+' venda'+(sl.length===1?'':'s')+' com saldo'],['Sem nenhuma nota de entrega',String(sem.length),brl(sem.reduce((a,v)=>a+(+v.valor||0),0))],
     ['Entregas sem chave no refNFe',String(semR.length),dv.length?dv.length+' com divergência na conferência':'nenhuma com divergência']]
     .map(([t,b,s])=>`<div class="mo"><small>${t}</small><b>${b}</b><span>${s}</span></div>`).join('');
   const fl=[RM||RD1||RD2?'pela data de '+TIPO_D(RT):'',RM?`mês ${MES[+RM.slice(5)-1]}/${RM.slice(0,4)}`:'',RD1?'de '+br(RD1):'',RD2?'até '+br(RD2):'',RL||'',RS?$('#rs').selectedOptions[0].textContent.toLowerCase():'',RQ?`busca "${RQ}"`:''].filter(Boolean);
   $('#rpt').textContent=`Relatório venda × entrega · ${fl.length?fl.join(' · '):'todas as vendas'} · gerado em ${hora(new Date())}`;
   if(!L.length){$('#rtab').innerHTML=`<div class="empty"><b>${V.length?'Nenhuma venda neste filtro':'Nenhuma venda na agenda ainda'}</b><p>${V.length?'Mude o mês, o período, a loja ou a situação para ver outras vendas.':'Registre as notas de faturamento antecipado na aba Agenda.'}</p></div>`;return;}
-  const body=L.map(v=>{const E=v.entregas||[],n=Math.max(1,E.length),[sc,sl]=sitV(v),sv=saldoV(v),rest=[...saldoProd(v).values()].filter(o=>o.rest>0&&v.status!=='finalizada');
+  const body=L.map(v=>{const E=entregasVis(v),n=Math.max(1,E.length),[sc,sl]=sitV(v),sv=saldoV(v),rest=[...saldoProd(v).values()].filter(o=>o.rest>0&&v.status!=='finalizada');
     const vc=`<td rowspan="${n}">${esc(v.loja||'—')}</td><td rowspan="${n}"><button class="lk nf" data-goto="${esc(v.numero)}" data-gid="${esc(v.id)}" title="Abrir na agenda">${esc(v.numero)}</button></td><td rowspan="${n}">${br(v.emissao)}</td>
       <td rowspan="${n}"><b>${esc(v.cliente||'—')}</b><span class="sm">${fmtDoc(v.doc)||'—'}</span></td><td rowspan="${n}">${prodCell(v.produtos)}</td><td rowspan="${n}" class="n"><b>${brl(v.valor)}</b></td>`;
     const sc_=`<td rowspan="${n}" class="n sep">${sv>0?`<b>${brl(sv)}</b>${rest.map(o=>`<span class="pl">${fq(o.rest)} ${esc(o.un||'')} ${esc(o.desc)}</span>`).join('')}`:'<span class="sm">—</span>'}</td><td rowspan="${n}">${br(v.prazo)}</td><td rowspan="${n}"><span class="chip ${sc}">${esc(sl)}</span>${v.obs?`<span class="sm" style="white-space:normal;color:var(--warn)">${esc(v.obs)}</span>`:''}</td>`;
@@ -795,9 +802,9 @@ function renderRel(){const V=all();
     return `<tbody>${E.map((e,i)=>`<tr>${i===0?vc:''}${ec(e)}${i===0?sc_:''}</tr>`).join('')}</tbody>`;}).join('');
   $('#rtab').innerHTML=`<div class="tw rtw"><table class="rt"><thead><tr><th colspan="6" class="grp gv">Faturamento antecipado · 5922</th><th colspan="6" class="grp ge sep">Nota de entrega · 5117</th><th colspan="3" class="grp gs sep">Saldo</th></tr>
     <tr><th>Loja</th><th>NF</th><th>Emissão</th><th>Cliente</th><th>Produtos</th><th class="n">Valor</th><th class="sep">NF</th><th>Emissão</th><th>Produtos</th><th class="n">Valor</th><th>Referência</th><th>Conferência</th><th class="n sep">Falta entregar</th><th>Prazo</th><th>Situação</th></tr></thead>
-    ${body}<tfoot><tr><td colspan="5">${L.length} venda${L.length===1?'':'s'} · ${E.length} nota${E.length===1?'':'s'} de entrega</td><td class="n">${brl(tv)}</td><td class="sep" colspan="3"></td><td class="n">${brl(te)}</td><td colspan="2"></td><td class="n sep">${brl(ts)}</td><td colspan="2"></td></tr></tfoot></table></div>`;}
+    ${body}<tfoot><tr><td colspan="5">Total · ${L.length} venda${L.length===1?'':'s'} · ${E.length} nota${E.length===1?'':'s'} de entrega${perE?' no período':''}</td><td class="n">${brl(tv)}</td><td class="sep" colspan="3"></td><td class="n">${brl(te)}</td><td colspan="2"></td><td class="n sep">${brl(ts)}</td><td colspan="2"></td></tr></tfoot></table></div>`;}
 function exportRel(){const L=relFiltro();const H=['Loja','NF venda','Série','Emissão venda','Cliente','CPF/CNPJ','Produtos da venda','Qtd. vendida','Valor da venda','Prazo da entrega','NF entrega','Emissão entrega','Dias após a venda','Produtos da entrega','Qtd. entregue','Valor da entrega','Chave da venda no refNFe','Conferência','Falta entregar (R$)','Situação','Chave da venda','Chave da entrega'];
-  const R=[H];L.forEach(v=>{const E=v.entregas||[],qv=(v.produtos||[]).reduce((a,p)=>a+(+p.qtd||0),0),base=[v.loja||'',v.numero,v.serie||'',br(v.emissao),v.cliente||'',fmtDoc(v.doc),qtdTxt(v.produtos),qv,r2(v.valor)],fim=[saldoV(v),sitV(v)[1]];
+  const R=[H];L.forEach(v=>{const E=entregasVis(v),qv=(v.produtos||[]).reduce((a,p)=>a+(+p.qtd||0),0),base=[v.loja||'',v.numero,v.serie||'',br(v.emissao),v.cliente||'',fmtDoc(v.doc),qtdTxt(v.produtos),qv,r2(v.valor)],fim=[saldoV(v),sitV(v)[1]];
     if(!E.length)R.push([...base,br(v.prazo),'','','','','','','','',...fim,v.chave||'','']);
     E.forEach(e=>R.push([...base,br(v.prazo),e.numero,br(e.emissao),e.emissao&&v.emissao?Math.round((toD(e.emissao)-toD(v.emissao))/864e5):'',qtdTxt(e.produtos),(e.produtos||[]).reduce((a,p)=>a+(+p.qtd||0),0),r2(e.valor),refOk(v,e)?'sim':'não',confSt(e)[1],...fim,v.chave||'',e.chave||'']));});
   baixarCsv(`Relatorio venda x entrega ${hojeNome()}.csv`,R);}
