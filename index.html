@@ -1028,7 +1028,15 @@ async function logado(u){EU=u;uid=u.login;canWrite=u.perfil!=='consulta';remoto=
   if(!canWrite)notice('Seu usuário é de consulta: você vê a agenda, mas não registra notas.');else notice('',false);
   $('#localbar').hidden=true;lgShow('<div class="busy"><span class="spin"></span>Carregando a agenda…</div>');
   try{await recarregar(true);}catch(e){telaErro(e);return;}
-  lgHide();if(u.trocarSenha)telaTrocaSenha(true);}
+  let trouxe=0;if(u.perfil==='admin')trouxe=await autoImport();
+  lgHide();if(u.trocarSenha)telaTrocaSenha(true);else if(trouxe)okShow('Agenda antiga trazida',`<p>${trouxe} venda${trouxe===1?'':'s'} da agenda que vocês usavam no computador foram gravadas no banco do Drive.</p>`);}
+/* traz automaticamente a agenda antiga deixada no Drive (pasta XMLs), uma vez, sem duplicar */
+async function autoImport(){const id=window.AGENDA_IMPORT||'';if(!id||LS.get('agenda.imp.'+id))return 0;
+  let d;try{const r=await api('baixarArquivo',{id});const bin=atob(r.base64),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);d=JSON.parse(new TextDecoder('utf-8').decode(u8));}catch(e){return 0;}
+  const tem=new Set(VENDAS.map(v=>v.id));const F=(d.vendas||[]).map(v=>({id:v.id||v.chave,obj:v})).filter(x=>x.id&&!tem.has(x.id));
+  try{for(let i=0;i<F.length;i+=60){lgShow(`<div class="busy"><span class="spin"></span>Trazendo a agenda antiga para o Drive… ${Math.min(i+60,F.length)} de ${F.length}</div>`);await api('importar',{itens:F.slice(i,i+60),manterExistentes:true});}
+    if(F.length)await recarregar(true);LS.set('agenda.imp.'+id,'1');return F.length;}
+  catch(e){notice('Não consegui trazer toda a agenda antiga agora ('+e.message+'). Saia e entre de novo para continuar.');try{await recarregar(true);}catch(_){}return 0;}}
 async function recarregar(forcar){if(!remoto&&!forcar)return;const [r,n]=await Promise.all([api('listar'),api('nomes').catch(()=>NOMES)]);NOMES=n||{};
   VENDAS=(r.vendas||[]).map(v=>({...v,id:v.id||v.chave}));ultimaCarga=Date.now();$('#sync').textContent='atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   if(edit&&document.getElementById('edf'))return;render();}
