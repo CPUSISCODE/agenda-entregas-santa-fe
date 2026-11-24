@@ -992,9 +992,12 @@ const LS={get:k=>{try{return localStorage.getItem(k)||'';}catch(_){return '';}},
 const API=()=>LS.get('agenda.api')||window.AGENDA_API||'';
 let remoto=false,TOKEN=LS.get('agenda.token'),EU=null,NOMES={},ultimaCarga=0;
 async function api(acao,dados={}){const u=API();if(!u)throw new Error('o endereço do servidor não está configurado');
-  let r;try{r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({acao,token:TOKEN},dados)),redirect:'follow'});}
-  catch(e){throw new Error('sem conexão com o servidor. Confira a internet e tente de novo');}
-  let j;try{j=await r.json();}catch(e){throw new Error('o servidor respondeu de um jeito inesperado. Confira o endereço do servidor');}
+  const lim=acao==='importar'||acao==='enviarArquivo'||acao==='baixarArquivo'?120:35,ctl=typeof AbortController!=='undefined'?new AbortController():null,tm=setTimeout(()=>{try{ctl&&ctl.abort();}catch(_){}},lim*1000);
+  let r,j;try{
+    try{r=await fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({acao,token:TOKEN},dados)),redirect:'follow',cache:'no-store',signal:ctl?ctl.signal:undefined});}
+    catch(e){throw new Error(e&&e.name==='AbortError'?`o servidor do Google não respondeu em ${lim} segundos`:'sem conexão com o servidor. Confira a internet e tente de novo');}
+    try{j=await r.json();}catch(e){throw new Error(e&&e.name==='AbortError'?`o servidor do Google não respondeu em ${lim} segundos`:'o servidor respondeu de um jeito inesperado. Confira o endereço do servidor');}
+  }finally{clearTimeout(tm);}
   if(!j.ok){const e=new Error(j.erro||'erro');e.code=j.cod;if(j.cod==='sessao'&&acao!=='login'){TOKEN='';LS.set('agenda.token','');telaLogin(j.erro);}throw e;}return j.dados;}
 const PERFIL={admin:'Administrador',operador:'Operador',consulta:'Consulta'};
 function lgShow(html){const o=$('#lgov');o.innerHTML=`<div class="lg-card" role="dialog" aria-modal="true"><small class="k">Farol CPUSIS · Armazém Santa Fé</small>${html}</div>`;o.hidden=false;const i=o.querySelector('input');if(i)setTimeout(()=>i.focus(),50);}
@@ -1004,12 +1007,14 @@ function telaServidor(msg){lgShow(`<h2>Configurar o servidor</h2><p>Cole o ender
   <div class="f"><label for="lgapi">Endereço do servidor</label><input id="lgapi" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(API())}"></div>
   <p class="err" id="lgerr" ${msg?'':'hidden'}>${esc(msg||'')}</p><button class="btn pri" id="lgok">Salvar e continuar</button>`);
   $('#lgok').onclick=async()=>{const v=$('#lgapi').value.trim();if(!/^https:\/\/script\.google(usercontent)?\.com\//.test(v)){lgErr('Esse endereço não parece ser de um App da Web do Google Apps Script.');return;}LS.set('agenda.api',v);await entrar();};}
-async function entrar(){lgShow('<div class="busy"><span class="spin"></span>Conectando ao servidor…</div>');
+async function entrar(){lgShow('<div class="busy"><span class="spin"></span>Conectando ao servidor…</div><p id="lgslow" hidden>O servidor do Google está demorando para responder. Aguarde mais um pouco; se passar de 30 segundos aparece a opção de tentar de novo.</p>');
+  const sl=setTimeout(()=>{const e=$('#lgslow');if(e)e.hidden=false;},8000);try{await entrar_();}finally{clearTimeout(sl);}}
+async function entrar_(){
   if(!API()){telaServidor();return;}
   if(TOKEN){try{const r=await api('eu');return logado(r.usuario);}catch(e){if(e.code!=='sessao'){telaErro(e);return;}}}
   let st;try{st=await api('status');}catch(e){telaErro(e);return;}
   st.temAdmin?telaLogin():telaCriarAdmin();}
-function telaErro(e){lgShow(`<h2>Não consegui conectar</h2><p>${esc(e.message||e)}.</p><button class="btn pri" id="lgtry">Tentar de novo</button><button class="btn" id="lgcfg">Mudar endereço do servidor</button>`);$('#lgtry').onclick=entrar;$('#lgcfg').onclick=()=>telaServidor();}
+function telaErro(e){lgShow(`<h2>Não consegui conectar</h2><p>${esc(e.message||e)}.</p><p>Se continuar, avise o administrador.</p><button class="btn pri" id="lgtry">Tentar de novo</button><button class="btn" id="lgout">Entrar com outro usuário</button><button class="btn" id="lgcfg">Mudar endereço do servidor</button>`);$('#lgtry').onclick=entrar;$('#lgout').onclick=()=>{TOKEN='';LS.set('agenda.token','');entrar();};$('#lgcfg').onclick=()=>telaServidor();}
 function telaLogin(msg){lgShow(`<h2>Agenda de Entregas Futuras</h2><p>Entre com o seu usuário e senha.</p>
   <form id="lgf" style="display:grid;gap:12px"><div class="f"><label for="lgu">Usuário</label><input id="lgu" autocomplete="username" autocapitalize="none" value="${esc(LS.get('agenda.ultimo'))}"></div>
   <div class="f"><label for="lgs">Senha</label><input id="lgs" type="password" autocomplete="current-password"></div>
